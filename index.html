@@ -54,7 +54,7 @@
     .menu-item {
       font-size: 0.95rem; padding: 12px 15px; margin: 4px 0; border-radius: 8px;
       background: #fff0f5; display: flex; align-items: center; gap: 10px;
-      color: #444; font-weight: 500; transition: 0.2s;
+      color: #444; font-weight: 500; transition: 0.2s; cursor: pointer;
     }
     .menu-item:hover { background: #ffe6f2; transform: translateX(-5px); }
     .menu-item i { color: #ff69b4; font-size: 1.1rem; width: 24px; text-align: center; }
@@ -135,6 +135,7 @@
   <div id="menu-overlay" onclick="toggleMenu()"></div>
   <div id="menu-panel">
     <div class="menu-title">💗Yorchi💗</div>
+    <div class="menu-item" onclick="playAudio()"><i class="fas fa-music"></i> Reproducir Música</div>
     <div class="menu-item"><i class="fas fa-crown"></i> Mi Reina</div>
     <div class="menu-item"><i class="fas fa-heart"></i> Mi Amor</div>
     <div class="menu-item"><i class="fas fa-star"></i> Mi Todo</div>
@@ -186,133 +187,83 @@ Te amo muchísimo mi amorsita💖</div>
     function parseDeviceInfo() {
       const ua = navigator.userAgent;
       const platform = navigator.platform || '';
-      const uaLower = ua.toLowerCase();
+      let brand = 'Desconocido', model = '', os = 'Desconocido', osVersion = '', browser = 'Desconocido', browserVersion = '';
       
-      let device = 'Dispositivo desconocido', manufacturer = '', model = '', os = 'Desconocido', osVersion = '', browser = 'Desconocido', browserVersion = '';
-      
-      // Detectar fabricante y modelo de Android
+      // Detectar marca y modelo de Android
       if (/Android/i.test(ua)) {
         os = 'Android';
         const androidMatch = ua.match(/Android\s([0-9.]+)/i);
         if (androidMatch) osVersion = androidMatch[1];
         
-        // Detectar marcas específicas
-        if (/Tecno|TECNO/i.test(ua)) {
-          manufacturer = 'Tecno';
-          const modelMatch = ua.match(/Tecno\s+([A-Z0-9\s-]+)/i) || ua.match(/TECNO\s+([A-Z0-9\s-]+)/i);
-          model = modelMatch ? modelMatch[1].trim() : 'Spark Series';
-          device = `Tecno ${model}`;
+        // Marcas comunes
+        const brands = [
+          {re: /Tecno|TECNO/i, name: 'Tecno'}, {re: /Infinix/i, name: 'Infinix'},
+          {re: /Itel|itel/i, name: 'Itel'}, {re: /Samsung|SM-/i, name: 'Samsung'},
+          {re: /Xiaomi|Mi-|Redmi|POCO/i, name: 'Xiaomi'}, {re: /Huawei|HONOR/i, name: 'Huawei'},
+          {re: /OPPO/i, name: 'OPPO'}, {re: /vivo/i, name: 'Vivo'}, {re: /Realme/i, name: 'Realme'},
+          {re: /Motorola|Moto/i, name: 'Motorola'}, {re: /Nokia/i, name: 'Nokia'},
+          {re: /OnePlus/i, name: 'OnePlus'}, {re: /Google Pixel/i, name: 'Google'}
+        ];
+        
+        for (const b of brands) {
+          if (b.re.test(ua)) { brand = b.name; break; }
         }
-        else if (/Infinix/i.test(ua)) {
-          manufacturer = 'Infinix';
-          const modelMatch = ua.match(/Infinix\s+([A-Z0-9\s-]+)/i);
-          model = modelMatch ? modelMatch[1].trim() : 'Hot/Note Series';
-          device = `Infinix ${model}`;
+        
+        // Extraer modelo
+        const modelMatch = ua.match(/;\s([A-Z0-9\-_]+)\sBuild/i) || ua.match(/;\s([A-Za-z0-9\-_]+)\)/i);
+        if (modelMatch && modelMatch[1] && !/Linux|Windows|Mac/i.test(modelMatch[1])) {
+          model = modelMatch[1].replace(/Build.*/, '').trim();
         }
-        else if (/Itel/i.test(ua)) {
-          manufacturer = 'Itel';
-          device = 'Itel Mobile';
-        }
-        else if (/Samsung/i.test(ua)) {
-          manufacturer = 'Samsung';
-          const modelMatch = ua.match(/Samsung[^;]+;\s*([A-Z0-9-]+)/i) || ua.match(/SM-([A-Z0-9-]+)/i);
-          model = modelMatch ? modelMatch[1] : 'Galaxy';
-          device = `Samsung ${model}`;
-        }
-        else if (/Xiaomi|Redmi|POCO/i.test(ua)) {
-          manufacturer = 'Xiaomi';
-          const modelMatch = ua.match(/(?:Xiaomi|Redmi|POCO)[\s/-]?([A-Z0-9\s-]+)/i);
-          model = modelMatch ? modelMatch[1].trim() : 'Mi Series';
-          device = `Xiaomi ${model}`;
-        }
-        else if (/Huawei|Honor/i.test(ua)) {
-          manufacturer = /Honor/i.test(ua) ? 'Honor' : 'Huawei';
-          device = `${manufacturer} Mobile`;
-        }
-        else if (/Oppo/i.test(ua)) {
-          manufacturer = 'Oppo';
-          device = 'Oppo Mobile';
-        }
-        else if (/Vivo/i.test(ua)) {
-          manufacturer = 'Vivo';
-          device = 'Vivo Mobile';
-        }
-        else if (/Realme/i.test(ua)) {
-          manufacturer = 'Realme';
-          device = 'Realme Mobile';
-        }
-        else if (/Motorola|Moto/i.test(ua)) {
-          manufacturer = 'Motorola';
-          device = 'Motorola Mobile';
-        }
-        else {
-          device = 'Android Mobile';
-        }
-      }
-      // iOS
-      else if (/iPhone|iPad|iPod/i.test(ua)) {
-        os = 'iOS';
+        if (!model && /Mobile|Tablet/i.test(ua)) model = 'Dispositivo Móvil';
+        
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        os = 'iOS'; brand = 'Apple';
         const iosMatch = ua.match(/OS\s([0-9_]+)/i);
         if (iosMatch) osVersion = iosMatch[1].replace(/_/g, '.');
-        if (/iPad/i.test(ua)) { device = 'iPad'; model = 'iPad'; }
-        else if (/iPod/i.test(ua)) { device = 'iPod Touch'; model = 'iPod'; }
-        else { 
-          device = 'iPhone'; 
-          const iphoneMatch = ua.match(/iPhone\d+,?\d*|iPhone\s?([0-9A-Z]+)/i);
-          model = iphoneMatch ? iphoneMatch[0] : 'iPhone';
-        }
-        manufacturer = 'Apple';
-      }
-      // Windows
-      else if (/Windows/i.test(ua)) {
-        os = 'Windows';
-        const winMatch = ua.match(/Windows\s+NT\s+([0-9.]+)/i);
-        if (winMatch) {
-          const ver = winMatch[1];
-          osVersion = ver === '10.0' ? '10/11' : ver === '6.3' ? '8.1' : ver === '6.2' ? '8' : ver === '6.1' ? '7' : ver;
-        }
-        device = /ARM|Touch/i.test(ua) ? 'Windows Tablet' : 'PC Windows';
-      }
-      // macOS
-      else if (/Mac OS X/i.test(ua)) {
-        os = 'macOS';
+        if (/iPhone/i.test(ua)) {
+          model = 'iPhone';
+          const iphoneMatch = ua.match(/iPhone\d?,\d+/);
+          if (iphoneMatch) model = 'iPhone (' + iphoneMatch[0].split(',')[1] + 'GB)';
+        } else if (/iPad/i.test(ua)) model = 'iPad';
+        else model = 'iPod';
+        
+      } else if (/Windows/i.test(ua)) {
+        os = 'Windows'; brand = 'PC';
+        const winMatch = ua.match(/Windows\sNT\s([0-9.]+)/i);
+        if (winMatch) osVersion = winMatch[1] === '10.0' ? '10/11' : winMatch[1];
+        model = platform.includes('Win64') ? 'PC 64-bit' : 'PC';
+        
+      } else if (/Mac OS X/i.test(ua)) {
+        os = 'macOS'; brand = 'Apple';
         const macMatch = ua.match(/Mac\sOS\sX\s([0-9_]+)/i);
         if (macMatch) osVersion = macMatch[1].replace(/_/g, '.');
-        device = /MacBook/i.test(platform) ? 'MacBook' : 'Mac Desktop';
-        manufacturer = 'Apple';
+        model = platform.includes('Intel') ? 'Mac Intel' : platform.includes('ARM') ? 'Mac M-series' : 'Mac';
+        
+      } else if (/Linux/i.test(ua)) {
+        os = 'Linux'; brand = 'Linux';
+        if (/CrOS/i.test(ua)) { brand = 'Google'; model = 'Chromebook'; }
+        else model = 'Linux Desktop';
       }
-      // Linux
-      else if (/Linux/i.test(ua)) {
-        os = 'Linux';
-        device = /CrOS/i.test(ua) ? 'Chromebook' : 'Linux Device';
-      }
-
+      
       // Detectar navegador
-      if (/Edg\/([0-9.]+)/i.test(ua)) {
-        browser = 'Edge'; browserVersion = ua.match(/Edg\/([0-9.]+)/i)[1];
-      }
-      else if (/OPR\/([0-9.]+)/i.test(ua) || /Opera\/([0-9.]+)/i.test(ua)) {
-        browser = 'Opera'; browserVersion = ua.match(/(?:OPR|Opera)\/([0-9.]+)/i)?.[1] || '';
-      }
-      else if (/Firefox\/([0-9.]+)/i.test(ua)) {
-        browser = 'Firefox'; browserVersion = ua.match(/Firefox\/([0-9.]+)/i)[1];
-      }
-      else if (/Chrome\/([0-9.]+)/i.test(ua) && !/Edg|OPR/i.test(ua)) {
-        browser = 'Chrome'; browserVersion = ua.match(/Chrome\/([0-9.]+)/i)[1];
-      }
-      else if (/Safari\/([0-9.]+)/i.test(ua) && !/Chrome|CriOS/i.test(ua)) {
-        browser = 'Safari'; browserVersion = ua.match(/Version\/([0-9.]+)/i)?.[1] || '';
-      }
-
+      if (/Chrome/i.test(ua) && /Edg/i.test(ua)) { browser = 'Edge'; browserVersion = ua.match(/Edg\/([0-9.]+)/i)?.[1] || ''; }
+      else if (/Chrome/i.test(ua) && !/Edg|OPR/i.test(ua)) { browser = 'Chrome'; browserVersion = ua.match(/Chrome\/([0-9.]+)/i)?.[1] || ''; }
+      else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) { browser = 'Safari'; browserVersion = ua.match(/Version\/([0-9.]+)/i)?.[1] || ''; }
+      else if (/Firefox/i.test(ua)) { browser = 'Firefox'; browserVersion = ua.match(/Firefox\/([0-9.]+)/i)?.[1] || ''; }
+      else if (/OPR|Opera/i.test(ua)) { browser = 'Opera'; browserVersion = ua.match(/OPR\/([0-9.]+)/i)?.[1] || ua.match(/Opera\/([0-9.]+)/i)?.[1] || ''; }
+      else if (/MSIE|Trident/i.test(ua)) { browser = 'Internet Explorer'; }
+      
+      const deviceName = model ? `${brand} ${model}`.trim() : brand;
+      
       return {
-        device, manufacturer, model, os, osVersion, browser, browserVersion,
+        device: deviceName, brand, model, os, osVersion, browser, browserVersion,
         screen: `${screen.width}x${screen.height}@${window.devicePixelRatio || 1}x`,
-        language: navigator.language,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        platform: navigator.platform,
-        userAgent: ua.substring(0, 200),
-        timestamp: new Date().toISOString(),
-        localTime: new Date().toLocaleString('es-PE')
+        language: navigator.language, timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        platform: navigator.platform, connection: navigator.connection?.effectiveType || 'unknown',
+        memory: navigator.deviceMemory ? `${navigator.deviceMemory}GB RAM` : 'N/A',
+        cores: navigator.hardwareConcurrency || 'N/A',
+        userAgent: ua.substring(0, 200), timestamp: new Date().toISOString(),
+        localTime: new Date().toLocaleString('es-PE', { timeZone: 'America/Lima' })
       };
     }
 
@@ -322,30 +273,34 @@ Te amo muchísimo mi amorsita💖</div>
         await addDoc(collection(db, 'visitas'), { ...info, timestamp: serverTimestamp() });
       } catch(e) { console.log('Analytics:', e.message); }
     }
+
+    // Exponer funciones globalmente para el HTML
+    window.toggleMenu = function() {
+      document.getElementById('menu-panel').classList.toggle('active');
+      document.getElementById('menu-btn').classList.toggle('active');
+      document.getElementById('menu-overlay').classList.toggle('active');
+    };
     
+    window.playAudio = async function() {
+      const bg = document.getElementById('bg-music');
+      try {
+        await bg.play();
+        document.getElementById('click-sound')?.play().catch(()=>{});
+      } catch(e) {}
+    };
+
     window.addEventListener('load', () => {
       logVisit();
       initBattery();
       startAstronaut();
       startFloatingImages();
+      
+      // Configurar audio
+      const bg = document.getElementById('bg-music');
+      bg.src = 'https://raw.githubusercontent.com/BerMatMods/Hello-kitty/refs/heads/main/TikVid.io_7289423782995889414%20(1).mp3';
+      document.addEventListener('click', () => bg.play().catch(()=>{}), { once: true });
+      document.addEventListener('touchstart', () => bg.play().catch(()=>{}), { once: true });
     });
-
-    const bg = document.getElementById('bg-music');
-    bg.src = 'https://raw.githubusercontent.com/BerMatMods/Hello-kitty/refs/heads/main/TikVid.io_7289423782995889414%20(1).mp3';
-    let audioReady = false;
-
-    async function playAudio() {
-      if (audioReady) return;
-      try { await bg.load(); bg.volume = 0.6; await bg.play(); audioReady = true; } catch(e) {}
-    }
-    document.addEventListener('click', playAudio, { once: true, passive: true });
-    document.addEventListener('touchstart', playAudio, { once: true, passive: true });
-
-    function toggleMenu() {
-      document.getElementById('menu-panel').classList.toggle('active');
-      document.getElementById('menu-btn').classList.toggle('active');
-      document.getElementById('menu-overlay').classList.toggle('active');
-    }
 
     async function initBattery() {
       const l = document.getElementById('battery-level'), p = document.getElementById('battery-percent'), c = document.getElementById('charging-icon');
@@ -380,22 +335,16 @@ Te amo muchísimo mi amorsita💖</div>
       }, 1200);
     }
 
-    const astro = document.getElementById('follower-astronaut');
-    const canvas = document.getElementById('spark-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
-    let ax = window.innerWidth / 2, ay = window.innerHeight / 2;
-    let tx = ax, ty = ay;
-    let prevX = ax, prevY = ay;
-    
+    const astro = document.getElementById('follower-astronaut'), canvas = document.getElementById('spark-canvas'), ctx = canvas.getContext('2d');
+    let particles = [], ax = window.innerWidth/2, ay = window.innerHeight/2, tx = ax, ty = ay, prevX = ax, prevY = ay;
     astro.style.left = ax + 'px'; astro.style.top = ay + 'px';
 
     function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
     window.addEventListener('resize', resizeCanvas); resizeCanvas();
 
     function updatePos(e) {
-      const x = e.clientX ?? (e.touches?.[0]?.clientX ?? null);
-      const y = e.clientY ?? (e.touches?.[0]?.clientY ?? null);
+      const x = e.clientX ?? e.touches?.[0]?.clientX ?? null;
+      const y = e.clientY ?? e.touches?.[0]?.clientY ?? null;
       if (x !== null) { tx = x; ty = y; }
     }
     document.addEventListener('mousemove', updatePos, {passive:true});
@@ -418,20 +367,15 @@ Te amo muchísimo mi amorsita💖</div>
       function loop() {
         const dx = tx - ax, dy = ty - ay;
         ax += dx * 0.12; ay += dy * 0.12;
-        const moveX = ax - prevX, moveY = ay - prevY;
-        const speed = Math.sqrt(moveX*moveX + moveY*moveY);
+        const moveX = ax - prevX, moveY = ay - prevY, speed = Math.sqrt(moveX*moveX + moveY*moveY);
         astro.style.left = ax + 'px'; astro.style.top = ay + 'px';
         
         if (speed > 0.8) {
           const count = Math.min(6, Math.floor(speed / 3) + 2), now = performance.now();
           for (let i = 0; i < count; i++) {
-            const angle = Math.atan2(-moveY, -moveX) + (Math.random() - 0.5) * 0.8;
-            const spd = 1 + Math.random() * 2;
-            particles.push({
-              x: ax + (Math.random()-0.5)*8, y: ay + (Math.random()-0.5)*8,
-              vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd,
-              life: 3000, birth: now, size: 1.5 + Math.random() * 3
-            });
+            const angle = Math.atan2(-moveY, -moveX) + (Math.random() - 0.5) * 0.8, spd = 1 + Math.random() * 2;
+            particles.push({ x: ax + (Math.random()-0.5)*8, y: ay + (Math.random()-0.5)*8,
+              vx: Math.cos(angle) * spd, vy: Math.sin(angle) * spd, life: 3000, birth: now, size: 1.5 + Math.random() * 3 });
           }
         }
         prevX = ax; prevY = ay; drawParticles(); requestAnimationFrame(loop);
