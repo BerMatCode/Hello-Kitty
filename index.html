@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Hello Kitty Yorchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Dancing+Script:wght@700&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { 
+      width: 100%; height: 100%; overflow: hidden; 
+      touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none;
+    }
+    body {
+      font-family: 'Dancing Script', cursive;
+      background: url('https://raw.githubusercontent.com/BerMatCode/Archivos/main/Multimedia/Hello%20kitty%20Fondo.jpg') center/cover no-repeat fixed;
+      position: relative; color: white;
+    }
+    body::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: inherit; filter: blur(2px) brightness(0.9); z-index: -2;
+    }
+
+    #menu-btn {
+      position: absolute; top: 15px; right: 15px; width: 40px; height: 40px;
+      display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 5px;
+      cursor: pointer; z-index: 1000; background: rgba(0,0,0,0.3); border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(5px); transition: 0.3s;
+    }
+    #menu-btn:hover { background: rgba(255,20,147,0.4); }
+    #menu-btn span { width: 22px; height: 2px; background: #fff; border-radius: 2px; transition: 0.3s; }
+    #menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    #menu-btn.active span:nth-child(2) { opacity: 0; }
+    #menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+    #menu-panel {
+      position: fixed; top: 0; right: -300px; width: 260px; height: 100vh;
+      background: #ffffff; color: #333; padding: 70px 20px 20px; z-index: 999;
+      box-shadow: -5px 0 20px rgba(0,0,0,0.3); transition: right 0.3s cubic-bezier(0.4,0,0.2,1);
+      font-family: 'Roboto', sans-serif;
+    }
+    #menu-panel.active { right: 0; }
+    #menu-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 998; display: none; transition: opacity 0.3s;
+    }
+    #menu-overlay.active { display: block; }
+
+    .menu-title {
+      font-size: 1.4rem; font-weight: 700; color: #ff1493;
+      border-bottom: 2px solid #ff69b4; padding-bottom: 12px; margin-bottom: 15px; text-align: center;
+    }
+    .menu-item {
+      font-size: 0.95rem; padding: 12px 15px; margin: 4px 0; border-radius: 8px;
+      background: #fff0f5; display: flex; align-items: center; gap: 10px;
+      color: #444; font-weight: 500; transition: 0.2s;
+    }
+    .menu-item:hover { background: #ffe6f2; transform: translateX(-5px); }
+    .menu-item i { color: #ff69b4; font-size: 1.1rem; width: 24px; text-align: center; }
+
+    #battery-indicator {
+      position: absolute; top: 15px; left: 15px; display: flex; align-items: center; gap: 6px;
+      background: rgba(0, 0, 0, 0.35); padding: 5px 10px; border-radius: 20px;
+      font-family: 'Roboto Mono', monospace; font-size: 0.75rem; z-index: 100;
+      border: 1px solid rgba(255, 255, 255, 0.15); pointer-events: none;
+    }
+    .battery-icon { position: relative; width: 18px; height: 10px; border: 1.5px solid #fff; border-radius: 2px; display: flex; align-items: center; padding: 1px; }
+    .battery-icon::after { content: ''; position: absolute; right: -3px; width: 2px; height: 4px; background: #fff; border-radius: 0 2px 2px 0; }
+    .battery-level { height: 100%; background: #4ade80; border-radius: 1px; transition: width 0.3s ease; }
+    .battery-level.low { background: #f87171; } .battery-level.medium { background: #fbbf24; }
+    .charging-icon { font-size: 0.8rem; color: #fbbf24; display: none; }
+    .charging-icon.active { display: inline-block; animation: pulse 0.6s infinite; }
+    @keyframes pulse { 0%,100%{transform:scale(1);} 50%{transform:scale(0.9);} }
+
+    .message-box {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.45); backdrop-filter: blur(4px);
+      border-radius: 16px; padding: 18px 16px; text-align: center;
+      box-shadow: 0 0 15px rgba(255, 105, 180, 0.5); border: 1px solid rgba(255, 255, 255, 0.2);
+      z-index: 10; max-width: 85%; width: 80vw;
+    }
+    .title {
+      font-size: 2rem; font-weight: bold; margin-bottom: 10px;
+      text-shadow: 0 0 10px #ff69b4; color: #fff; font-family: 'Pacifico', cursive;
+      animation: glow 2s infinite alternate;
+    }
+    @keyframes glow { from { text-shadow: 0 0 5px #fff, 0 0 10px #ff69b4; } to { text-shadow: 0 0 15px #fff, 0 0 25px #ff69b4; } }
+    .message { font-size: 1.2rem; line-height: 1.5; color: #fff; text-shadow: 0 0 4px #000; }
+    
+    .corner-cake {
+      position: absolute; top: -10px; right: -10px; width: 60px; height: auto; z-index: 11;
+      animation: bounce 2.2s ease-in-out infinite;
+    }
+    @keyframes bounce { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
+
+    #follower-astronaut {
+      position: absolute; width: 70px; height: auto; pointer-events: none; z-index: 15;
+      filter: drop-shadow(0 0 10px rgba(255, 105, 180, 0.8));
+      transform: translate(-50%, -50%);
+    }
+
+    #spark-canvas {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 14;
+    }
+
+    .floating-img {
+      position: absolute; pointer-events: none; z-index: 2; opacity: 0;
+      animation: floatUp linear forwards;
+    }
+    @keyframes floatUp {
+      0% { transform: translateY(110vh) scale(0.8); opacity: 0; }
+      10% { opacity: 0.8; } 100% { transform: translateY(-20vh) scale(1); opacity: 0; }
+    }
+
+    .credits {
+      position: absolute; bottom: 70px; width: 100%; text-align: center;
+      font-family: 'Pacifico', cursive; font-size: 0.9rem; color: white;
+      text-shadow: 0 0 5px #ff66ff, 0 0 10px #ff66ff; z-index: 20; pointer-events: none;
+    }
+
+    @media (max-width: 768px) {
+      .message-box { padding: 14px 12px; }
+      .title { font-size: 1.6rem; } .message { font-size: 1rem; }
+      #follower-astronaut { width: 50px; } .corner-cake { width: 45px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="menu-btn" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </div>
+  <div id="menu-overlay" onclick="toggleMenu()"></div>
+  <div id="menu-panel">
+    <div class="menu-title">💗Yorchi💗</div>
+    <div class="menu-item"><i class="fas fa-crown"></i> Mi Reina</div>
+    <div class="menu-item"><i class="fas fa-heart"></i> Mi Amor</div>
+    <div class="menu-item"><i class="fas fa-star"></i> Mi Todo</div>
+    <div class="menu-item"><i class="fas fa-moon"></i> Mi Golosita</div>
+    <div class="menu-item"><i class="fas fa-infinity"></i> Siempre Juntos</div>
+  </div>
+
+  <div id="battery-indicator">
+    <div class="battery-icon"><div class="battery-level high" id="battery-level"></div></div>
+    <span id="battery-percent">--%</span>
+    <i class="fas fa-bolt charging-icon" id="charging-icon"></i>
+  </div>
+
+  <div class="message-box">
+    <div class="title">💘Mi Yorchi💖</div>
+    <div class="message">Te amo muchísimo mi bebé . No hay distancia ni tiempo que cambie lo que siento por ti, porque tú eres mi todo, mi goldita hermosa. Desde que llegaste a mi vida, todo es más bonito y especial.
+
+Siempre estás en mi mente y en mi corazón, y no importa lo lejos que estemos, lo nuestro es fuerte y sincero. Eres lo mejor que tengo.
+
+Te amo muchísimo mi amorsita💖</div>
+    <img src="https://i.postimg.cc/7P2vYZFL/1760657847691-removebg-preview.png" class="corner-cake" alt="Tarta">
+  </div>
+
+  <div class="credits">𖤍 BerMat-Code 𖤍</div>
+
+  <canvas id="spark-canvas"></canvas>
+  <img id="follower-astronaut" src="https://i.postimg.cc/vHFJ1dyW/1760657793625-removebg-preview.png" alt="Astronauta">
+
+  <audio id="bg-music" preload="auto" loop></audio>
+  <audio id="click-sound" src="https://files.catbox.moe/deprpa.mp3" preload="auto"></audio>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBjXG9ngsNtezJPqEUcrAKryamI8de8qOo",
+      authDomain: "brilli-1011.firebaseapp.com",
+      projectId: "brilli-1011",
+      storageBucket: "brilli-1011.firebasestorage.app",
+      messagingSenderId: "946270544301",
+      appId: "1:946270544301:web:d97f630ab58366ef824124",
+      measurementId: "G-HV35EW82PF"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    function getDeviceInfo() {
+      const ua = navigator.userAgent;
+      let device = 'Desconocido', os = 'Desconocido', browser = 'Desconocido';
+      
+      if(/Android/i.test(ua)) { os = 'Android'; device = ua.match(/Mobile|Tablet/i)?.[0] || 'Android'; }
+      else if(/iPhone|iPad|iPod/i.test(ua)) { os = 'iOS'; device = ua.match(/iPhone|iPad|iPod/i)[0]; }
+      else if(/Windows/i.test(ua)) { os = 'Windows'; device = 'PC'; }
+      else if(/Mac OS X/i.test(ua)) { os = 'macOS'; device = 'Mac'; }
+      else if(/Linux/i.test(ua)) { os = 'Linux'; device = 'Linux'; }
+      
+      if(/Chrome/i.test(ua) && !/Edg/i.test(ua)) browser = 'Chrome';
+      else if(/Safari/i.test(ua) && !/Chrome/i.test(ua)) browser = 'Safari';
+      else if(/Firefox/i.test(ua)) browser = 'Firefox';
+      else if(/Edg/i.test(ua)) browser = 'Edge';
+      else if(/OPR/i.test(ua)) browser = 'Opera';
+      
+      return {
+        device, os, browser,
+        screen: `${screen.width}x${screen.height}`,
+        language: navigator.language,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        platform: navigator.platform,
+        userAgent: ua.substring(0, 150),
+        timestamp: new Date().toISOString(),
+        localTime: new Date().toLocaleString('es-PE')
+      };
+    }
+
+    async function logVisit() {
+      try {
+        const info = getDeviceInfo();
+        await addDoc(collection(db, 'visitas'), {
+          ...info,
+          timestamp: serverTimestamp()
+        });
+      } catch(e) { console.log('Analytics:', e.message); }
+    }
+    
+    window.addEventListener('load', () => {
+      logVisit();
+      initBattery();
+      startAstronaut();
+      startFloatingImages();
+    });
+
+    const bg = document.getElementById('bg-music');
+    bg.src = 'https://raw.githubusercontent.com/BerMatMods/Hello-kitty/refs/heads/main/TikVid.io_7289423782995889414%20(1).mp3';
+    let audioReady = false;
+
+    async function playAudio() {
+      if (audioReady) return;
+      try {
+        await bg.load();
+        bg.volume = 0.6;
+        await bg.play();
+        audioReady = true;
+      } catch(e) {}
+    }
+    document.addEventListener('click', playAudio, { once: true, passive: true });
+    document.addEventListener('touchstart', playAudio, { once: true, passive: true });
+
+    function toggleMenu() {
+      document.getElementById('menu-panel').classList.toggle('active');
+      document.getElementById('menu-btn').classList.toggle('active');
+      document.getElementById('menu-overlay').classList.toggle('active');
+    }
+
+    async function initBattery() {
+      const l = document.getElementById('battery-level');
+      const p = document.getElementById('battery-percent');
+      const c = document.getElementById('charging-icon');
+      const upd = (lvl, chg) => {
+        const pct = Math.round(lvl * 100);
+        p.textContent = pct + '%';
+        l.style.width = pct + '%';
+        l.className = 'battery-level ' + (pct <= 20 ? 'low' : pct <= 50 ? 'medium' : 'high');
+        c.classList.toggle('active', chg);
+        c.style.display = chg ? 'inline-block' : 'none';
+      };
+      if ('getBattery' in navigator) {
+        try {
+          const b = await navigator.getBattery();
+          upd(b.level, b.charging);
+          b.addEventListener('levelchange', () => upd(b.level, b.charging));
+          b.addEventListener('chargingchange', () => upd(b.level, b.charging));
+          return;
+        } catch(e) {}
+      }
+      upd(0.85, false);
+    }
+
+    function startFloatingImages() {
+      const src = "https://raw.githubusercontent.com/BerMatCode/Archivos/main/Multimedia/Hello_kitty_2.png";
+      setInterval(() => {
+        const img = document.createElement('img');
+        img.src = src; img.className = 'floating-img';
+        img.style.width = (25 + Math.random() * 35) + 'px';
+        img.style.left = (Math.random() * 90) + 'vw';
+        img.style.animationDuration = (5 + Math.random() * 5) + 's';
+        document.body.appendChild(img);
+        setTimeout(() => img.remove(), 11000);
+      }, 1200);
+    }
+
+    const astro = document.getElementById('follower-astronaut');
+    const canvas = document.getElementById('spark-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let ax = window.innerWidth / 2, ay = window.innerHeight / 2;
+    let tx = ax, ty = ay;
+    let prevX = ax, prevY = ay;
+    
+    astro.style.left = ax + 'px';
+    astro.style.top = ay + 'px';
+
+    function resizeCanvas() { canvas.width = window.innerWidth; canvas.height = window.innerHeight; }
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    function updatePos(e) {
+      const x = e.clientX ?? (e.touches?.[0]?.clientX ?? null);
+      const y = e.clientY ?? (e.touches?.[0]?.clientY ?? null);
+      if (x !== null) { tx = x; ty = y; }
+    }
+    document.addEventListener('mousemove', updatePos, {passive:true});
+    document.addEventListener('touchmove', updatePos, {passive:true});
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const now = performance.now();
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        const age = now - p.birth;
+        if (age >= p.life) { particles.splice(i, 1); continue; }
+        p.x += p.vx; p.y += p.vy;
+        p.vx *= 0.97; p.vy *= 0.97;
+        const opacity = 1 - (age / p.life);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+        ctx.fill();
+      }
+    }
+
+    function startAstronaut() {
+      function loop() {
+        const dx = tx - ax, dy = ty - ay;
+        ax += dx * 0.12; ay += dy * 0.12;
+        const moveX = ax - prevX, moveY = ay - prevY;
+        const speed = Math.sqrt(moveX*moveX + moveY*moveY);
+        astro.style.left = ax + 'px'; astro.style.top = ay + 'px';
+        
+        if (speed > 0.8) {
+          const count = Math.min(6, Math.floor(speed / 3) + 2);
+          const now = performance.now();
+          for (let i = 0; i < count; i++) {
+            const angle = Math.atan2(-moveY, -moveX) + (Math.random() - 0.5) * 0.8;
+            const spd = 1 + Math.random() * 2;
+            particles.push({
+              x: ax + (Math.random()-0.5)*8,
+              y: ay + (Math.random()-0.5)*8,
+              vx: Math.cos(angle) * spd,
+              vy: Math.sin(angle) * spd,
+              life: 3000,
+              birth: now,
+              size: 1.5 + Math.random() * 3
+            });
+          }
+        }
+        prevX = ax; prevY = ay;
+        drawParticles();
+        requestAnimationFrame(loop);
+      }
+      loop();
+    }
+  </script>
+</body>
+</html>
