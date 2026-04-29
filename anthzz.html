@@ -3,132 +3,177 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>📊 Analytics - Yorchi</title>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <title>✨ Analytics - Yorchi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    :root {
+      --primary: #ff1493; --primary-light: #ff69b4; --secondary: #9333ea;
+      --bg-dark: #0f0f1a; --bg-card: #1a1a2e; --text: #f8fafc; --text-muted: #94a3b8;
+      --success: #4ade80; --warning: #fbbf24; --danger: #f87171;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-      color: #fff; min-height: 100vh; padding: 20px;
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(ellipse at top, #1a1a3a 0%, var(--bg-dark) 70%);
+      color: var(--text); min-height: 100vh; padding: 16px;
     }
     .header {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 15px 25px; background: rgba(255,20,147,0.15);
-      border-radius: 12px; margin-bottom: 20px; border: 1px solid rgba(255,105,180,0.3);
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;
+      padding: 16px 20px; background: linear-gradient(135deg, rgba(255,20,147,0.15), rgba(147,51,234,0.1));
+      border-radius: 16px; margin-bottom: 16px; border: 1px solid rgba(255,105,180,0.25);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
     }
-    .header h1 { font-size: 1.5rem; color: #ff69b4; }
-    .stats { display: flex; gap: 15px; flex-wrap: wrap; }
-    .stat-card {
-      background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 10px;
-      text-align: center; min-width: 120px; border: 1px solid rgba(255,255,255,0.1);
-    }
-    .stat-card .num { font-size: 1.8rem; font-weight: 700; color: #4ade80; }
-    .stat-card .label { font-size: 0.85rem; opacity: 0.8; }
+    .header h1 { font-size: 1.3rem; font-weight: 600; color: var(--primary-light); display: flex; align-items: center; gap: 8px; }
+    .header h1 i { animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.6;} }
     
-    .filters { display: flex; gap: 10px; margin-bottom: 15px; flex-wrap: wrap; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 10px; width: 100%; max-width: 500px; }
+    .stat-card {
+      background: linear-gradient(145deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+      padding: 12px 14px; border-radius: 12px; text-align: center;
+      border: 1px solid rgba(255,255,255,0.1); transition: transform 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--primary-light); }
+    .stat-card .num { font-size: 1.5rem; font-weight: 700; color: var(--success); line-height: 1; }
+    .stat-card .label { font-size: 0.75rem; opacity: 0.85; margin-top: 4px; }
+    
+    .filters {
+      display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; align-items: center;
+      background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 12px;
+    }
     .filters select, .filters input {
-      padding: 8px 12px; border-radius: 8px; border: none;
-      background: rgba(255,255,255,0.15); color: #fff; font-size: 0.9rem;
+      padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.1); color: var(--text); font-size: 0.85rem;
+      outline: none; transition: border-color 0.2s;
     }
+    .filters select:focus, .filters input:focus { border-color: var(--primary-light); }
     .filters button {
-      padding: 8px 16px; border-radius: 8px; border: none;
-      background: #ff1493; color: #fff; cursor: pointer; font-weight: 500;
-      transition: 0.2s;
+      padding: 8px 14px; border-radius: 10px; border: none; cursor: pointer;
+      font-size: 0.85rem; font-weight: 500; transition: 0.2s; display: flex; align-items: center; gap: 6px;
     }
-    .filters button:hover { background: #ff69b4; }
+    .filters button.primary { background: var(--primary); color: white; }
+    .filters button.primary:hover { background: var(--primary-light); }
+    .filters button.secondary { background: rgba(255,255,255,0.15); color: var(--text); }
+    .filters button.secondary:hover { background: rgba(255,255,255,0.25); }
 
     .table-container {
-      background: rgba(255,255,255,0.08); border-radius: 12px;
-      overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
+      background: var(--bg-card); border-radius: 16px; overflow: hidden;
+      border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.25);
     }
-    table { width: 100%; border-collapse: collapse; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
     th {
-      background: rgba(255,20,147,0.25); padding: 14px 12px; text-align: left;
-      font-weight: 600; font-size: 0.9rem; color: #ff69b4; position: sticky; top: 0;
+      background: linear-gradient(135deg, rgba(255,20,147,0.2), rgba(147,51,234,0.15));
+      padding: 14px 12px; text-align: left; font-weight: 600; font-size: 0.8rem;
+      color: var(--primary-light); position: sticky; top: 0; z-index: 10;
+      text-transform: uppercase; letter-spacing: 0.5px;
     }
     td {
-      padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.08);
-      font-size: 0.85rem; vertical-align: top;
+      padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
+      font-size: 0.82rem; vertical-align: top; line-height: 1.4;
     }
-    tr:hover { background: rgba(255,255,255,0.05); }
-    .device-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 10px; background: rgba(74,222,128,0.2);
-      border-radius: 20px; font-size: 0.8rem;
+    tr:hover { background: rgba(255,255,255,0.04); }
+    tr.new-entry { animation: highlight 1.5s ease-out; }
+    @keyframes highlight { 0%{background:rgba(74,222,128,0.2);} 100%{background:transparent;} }
+    
+    .device-cell { display: flex; flex-direction: column; gap: 4px; }
+    .device-name { font-weight: 500; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .device-meta { font-size: 0.75rem; opacity: 0.85; display: flex; flex-wrap: wrap; gap: 4px; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px;
+      border-radius: 6px; font-size: 0.7rem; font-weight: 500;
     }
-    .os-badge {
-      display: inline-flex; padding: 3px 8px; background: rgba(59,130,246,0.2);
-      border-radius: 4px; font-size: 0.75rem; margin-left: 5px;
+    .badge.os { background: rgba(59,130,246,0.2); color: #60a5fa; }
+    .badge.browser { background: rgba(251,191,36,0.2); color: #fcd34d; }
+    .badge.screen { background: rgba(147,51,234,0.2); color: #c4b5fd; }
+    
+    .time-cell { min-width: 160px; }
+    .time-main { font-weight: 600; color: var(--text); font-size: 0.9rem; }
+    .time-sub { font-size: 0.75rem; color: var(--text-muted); }
+    
+    .loading, .empty { text-align: center; padding: 40px 20px; color: var(--text-muted); }
+    .loading i { animation: spin 1s linear infinite; margin-right: 8px; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    
+    .footer {
+      text-align: center; padding: 16px; color: var(--text-muted); font-size: 0.8rem;
+      border-top: 1px solid rgba(255,255,255,0.1); margin-top: 16px;
     }
-    .browser-badge {
-      display: inline-flex; padding: 3px 8px; background: rgba(251,191,36,0.2);
-      border-radius: 4px; font-size: 0.75rem; margin-left: 5px;
-    }
-    .time { color: #94a3b8; font-size: 0.8rem; }
-    .time strong { color: #fff; }
-    .loading { text-align: center; padding: 40px; color: #94a3b8; }
-    .empty { text-align: center; padding: 40px; color: #94a3b8; font-style: italic; }
     
     @media (max-width: 768px) {
-      .header { flex-direction: column; gap: 15px; text-align: center; }
-      .stats { justify-content: center; }
-      table { font-size: 0.8rem; }
-      th, td { padding: 8px 6px; }
+      .header { flex-direction: column; align-items: flex-start; }
+      .stats { width: 100%; }
       .hide-mobile { display: none; }
+      .filters { flex-wrap: wrap; }
+      .filters select, .filters input { flex: 1; min-width: 140px; }
     }
   </style>
 </head>
 <body>
   <div class="header">
-    <h1><i class="fas fa-chart-line"></i> 📊 Visitas - Hello Kitty Yorchi</h1>
+    <h1><i class="fas fa-satellite"></i> Analytics - Hello Kitty Yorchi</h1>
     <div class="stats">
-      <div class="stat-card"><div class="num" id="totalVisits">0</div><div class="label">Total Visitas</div></div>
-      <div class="stat-card"><div class="num" id="mobileCount">0</div><div class="label">Móviles</div></div>
-      <div class="stat-card"><div class="num" id="desktopCount">0</div><div class="label">PC/Mac</div></div>
+      <div class="stat-card"><div class="num" id="totalVisits">0</div><div class="label">Visitas</div></div>
+      <div class="stat-card"><div class="num" id="mobileCount">0</div><div class="label">📱 Móviles</div></div>
+      <div class="stat-card"><div class="num" id="desktopCount">0</div><div class="label">💻 PC</div></div>
       <div class="stat-card"><div class="num" id="lastUpdate">--:--</div><div class="label">Última</div></div>
     </div>
   </div>
 
   <div class="filters">
-    <select id="filterDevice">
-      <option value="all">Todos los dispositivos</option>
-      <option value="Android">Android</option>
-      <option value="iOS">iOS</option>
-      <option value="Windows">Windows</option>
-      <option value="macOS">macOS</option>
-      <option value="Linux">Linux</option>
+    <select id="filterOS">
+      <option value="all">🌐 Todos los SO</option>
+      <option value="Android">🤖 Android</option>
+      <option value="iOS">🍎 iOS</option>
+      <option value="Windows">🪟 Windows</option>
+      <option value="macOS">💻 macOS</option>
+      <option value="Linux">🐧 Linux</option>
     </select>
     <select id="filterBrowser">
-      <option value="all">Todos los navegadores</option>
+      <option value="all">🌍 Todos los navegadores</option>
       <option value="Chrome">Chrome</option>
       <option value="Safari">Safari</option>
       <option value="Firefox">Firefox</option>
       <option value="Edge">Edge</option>
+      <option value="Opera">Opera</option>
     </select>
-    <input type="text" id="searchInput" placeholder="🔍 Buscar..." />
-    <button onclick="clearFilters()"><i class="fas fa-rotate-right"></i> Limpiar</button>
-    <button onclick="exportData()"><i class="fas fa-download"></i> Exportar</button>
+    <select id="filterBrand">
+      <option value="all">🏭 Todas las marcas</option>
+      <option value="Tecno">Tecno</option>
+      <option value="Samsung">Samsung</option>
+      <option value="Xiaomi">Xiaomi</option>
+      <option value="Apple">Apple</option>
+      <option value="Infinix">Infinix</option>
+    </select>
+    <input type="text" id="searchInput" placeholder="🔍 Buscar dispositivo..." />
+    <button class="secondary" onclick="clearFilters()"><i class="fas fa-rotate-right"></i></button>
+    <button class="primary" onclick="exportData()"><i class="fas fa-download"></i> CSV</button>
   </div>
 
   <div class="table-container">
-    <table>
-      <thead>
-        <tr>
-          <th>🕐 Hora</th>
-          <th>📱 Dispositivo</th>
-          <th class="hide-mobile">🌐 Navegador</th>
-          <th class="hide-mobile">📐 Pantalla</th>
-          <th class="hide-mobile">🌍 Zona</th>
-          <th>🔤 Idioma</th>
-          <th class="hide-mobile">📋 User Agent</th>
-        </tr>
-      </thead>
-      <tbody id="visitsBody">
-        <tr><td colspan="7" class="loading">⏳ Cargando visitas...</td></tr>
-      </tbody>
-    </table>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>🕐 Fecha y Hora</th>
+            <th>📱 Dispositivo</th>
+            <th>🌐 Navegador</th>
+            <th class="hide-mobile">📐 Pantalla</th>
+            <th class="hide-mobile">🌍 Zona</th>
+            <th>🔤 Idioma</th>
+            <th class="hide-mobile">📋 User Agent</th>
+          </tr>
+        </thead>
+        <tbody id="visitsBody">
+          <tr><td colspan="7" class="loading"><i class="fas fa-spinner"></i> Cargando datos en tiempo real...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer">
+    <i class="fas fa-heart" style="color:#ff69b4"></i> Desarrollado con amor para Yorchi • <span id="liveIndicator">🟢 En vivo</span>
   </div>
 
   <script type="module">
@@ -147,34 +192,58 @@
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
-    let allVisits = [];
+    let allVisits = [], lastId = null;
 
-    function formatTime(ts) {
-      if (!ts) return '--:--';
+    function formatDateTime(ts) {
+      if (!ts) return { main: '--:--', sub: '' };
       const d = ts.toDate ? ts.toDate() : new Date(ts);
-      return d.toLocaleString('es-PE', { 
-        day: '2-digit', month: '2-digit', year: 'numeric',
-        hour: '2-digit', minute: '2-digit', second: '2-digit'
-      });
+      return {
+        main: d.toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
+        sub: d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
+      };
+    }
+
+    function getDeviceIcon(os, manufacturer) {
+      if (manufacturer === 'Tecno') return '✨';
+      if (os === 'Android') return '🤖';
+      if (os === 'iOS') return '🍎';
+      if (os === 'Windows') return '🪟';
+      if (os === 'macOS') return '💻';
+      if (os === 'Linux') return '🐧';
+      return '📱';
     }
 
     function renderTable(visits) {
       const tbody = document.getElementById('visitsBody');
       if (visits.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" class="empty">✨ Aún no hay visitas registradas</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="empty">✨ Esperando primeras visitas...</td></tr>';
         return;
       }
-      tbody.innerHTML = visits.map(v => {
-        const deviceIcon = v.os === 'Android' ? '🤖' : v.os === 'iOS' ? '🍎' : v.os === 'Windows' ? '🪟' : v.os === 'macOS' ? '💻' : '🐧';
+      tbody.innerHTML = visits.map((v, idx) => {
+        const time = formatDateTime(v.timestamp);
+        const icon = getDeviceIcon(v.os, v.manufacturer);
+        const isNew = v.id === lastId;
         return `
-          <tr>
-            <td><div class="time"><strong>${formatTime(v.timestamp)}</strong><br>${v.localTime || ''}</div></td>
-            <td><span class="device-badge">${deviceIcon} ${v.device}</span><span class="os-badge">${v.os}</span></td>
-            <td class="hide-mobile"><span class="browser-badge">${v.browser}</span></td>
-            <td class="hide-mobile">${v.screen || '--'}</td>
+          <tr class="${isNew ? 'new-entry' : ''}">
+            <td class="time-cell">
+              <div class="time-main">${time.main}</div>
+              <div class="time-sub">${time.sub}</div>
+            </td>
+            <td>
+              <div class="device-cell">
+                <div class="device-name">${icon} ${v.device}</div>
+                <div class="device-meta">
+                  <span class="badge os">${v.os}${v.osVersion ? ` ${v.osVersion}` : ''}</span>
+                  ${v.manufacturer ? `<span class="badge browser">${v.manufacturer}</span>` : ''}
+                  ${v.model && v.model !== v.device ? `<span class="badge screen">${v.model}</span>` : ''}
+                </div>
+              </div>
+            </td>
+            <td><span class="badge browser">${v.browser}${v.browserVersion ? ` ${v.browserVersion.split('.')[0]}` : ''}</span></td>
+            <td class="hide-mobile"><span class="badge screen">${v.screen}</span></td>
             <td class="hide-mobile">${v.timezone?.split('/')?.pop() || '--'}</td>
-            <td>${v.language || '--'}</td>
-            <td class="hide-mobile" title="${v.userAgent || ''}">${(v.userAgent || '').substring(0, 40)}${(v.userAgent?.length > 40) ? '...' : ''}</td>
+            <td>${v.language?.split('-')[0].toUpperCase() || '--'}</td>
+            <td class="hide-mobile" title="${v.userAgent || ''}"><code style="font-size:0.7rem;opacity:0.8">${(v.userAgent || '').substring(0, 50)}${(v.userAgent?.length > 50) ? '...' : ''}</code></td>
           </tr>
         `;
       }).join('');
@@ -188,24 +257,27 @@
       document.getElementById('desktopCount').textContent = desktop;
       if (visits[0]?.timestamp) {
         const d = visits[0].timestamp.toDate();
-        document.getElementById('lastUpdate').textContent = d.toLocaleTimeString('es-PE');
+        document.getElementById('lastUpdate').textContent = d.toLocaleTimeString('es-PE', {hour:'2-digit',minute:'2-digit'});
       }
     }
 
     function filterVisits() {
-      const device = document.getElementById('filterDevice').value;
+      const os = document.getElementById('filterOS').value;
       const browser = document.getElementById('filterBrowser').value;
+      const brand = document.getElementById('filterBrand').value;
       const search = document.getElementById('searchInput').value.toLowerCase();
       
-      let filtered = allVisits;
-      if (device !== 'all') filtered = filtered.filter(v => v.os === device);
+      let filtered = [...allVisits];
+      if (os !== 'all') filtered = filtered.filter(v => v.os === os);
       if (browser !== 'all') filtered = filtered.filter(v => v.browser === browser);
+      if (brand !== 'all') filtered = filtered.filter(v => v.manufacturer === brand);
       if (search) {
         filtered = filtered.filter(v => 
           v.device?.toLowerCase().includes(search) ||
+          v.manufacturer?.toLowerCase().includes(search) ||
+          v.model?.toLowerCase().includes(search) ||
           v.os?.toLowerCase().includes(search) ||
           v.browser?.toLowerCase().includes(search) ||
-          v.language?.toLowerCase().includes(search) ||
           v.userAgent?.toLowerCase().includes(search)
         );
       }
@@ -213,53 +285,57 @@
     }
 
     function clearFilters() {
-      document.getElementById('filterDevice').value = 'all';
+      document.getElementById('filterOS').value = 'all';
       document.getElementById('filterBrowser').value = 'all';
+      document.getElementById('filterBrand').value = 'all';
       document.getElementById('searchInput').value = '';
       filterVisits();
     }
 
     function exportData() {
-      const data = allVisits.map(v => ({
-        timestamp: formatTime(v.timestamp),
-        localTime: v.localTime,
-        device: v.device,
-        os: v.os,
-        browser: v.browser,
-        screen: v.screen,
-        language: v.language,
-        timezone: v.timezone,
-        platform: v.platform,
-        userAgent: v.userAgent
-      }));
-      const csv = Object.keys(data[0]||{}).join(',') + '\n' + 
-        data.map(row => Object.values(row).map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
-      const blob = new Blob([csv], {type: 'text/csv'});
+      if (!allVisits.length) return alert('No hay datos para exportar');
+      const headers = ['Fecha','Hora Local','Dispositivo','Fabricante','Modelo','SO','Versión SO','Navegador','Versión Nav','Pantalla','Idioma','Zona Horaria','Platform','User Agent'];
+      const rows = allVisits.map(v => {
+        const d = v.timestamp?.toDate ? v.timestamp.toDate() : new Date(v.timestamp);
+        return [
+          d.toISOString(), v.localTime, v.device, v.manufacturer, v.model, v.os, v.osVersion,
+          v.browser, v.browserVersion, v.screen, v.language, v.timezone, v.platform, `"${(v.userAgent||'').replace(/"/g,'""')}"`
+        ].map(x => `"${String(x).replace(/"/g,'""')}"`).join(',');
+      });
+      const csv = [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
       const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url; a.download = `visitas-yorchi-${new Date().toISOString().slice(0,10)}.csv`;
-      a.click(); URL.revokeObjectURL(url);
+      const a = document.createElement('a'); a.href = url;
+      a.download = `visitas-yorchi-${new Date().toISOString().slice(0,10)}.csv`;
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(url);
     }
 
-    // Exponer funciones globalmente
     window.clearFilters = clearFilters;
     window.exportData = exportData;
 
-    // Listener en tiempo real
-    const q = query(collection(db, 'visitas'), orderBy('timestamp', 'desc'), limit(100));
+    const q = query(collection(db, 'visitas'), orderBy('timestamp', 'desc'), limit(150));
     onSnapshot(q, (snapshot) => {
-      allVisits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const newVisits = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      if (newVisits.length && newVisits[0].id !== lastId) {
+        lastId = newVisits[0].id;
+      }
+      allVisits = newVisits;
       updateStats(allVisits);
       filterVisits();
     }, (error) => {
       document.getElementById('visitsBody').innerHTML = 
-        `<tr><td colspan="7" style="color:#f87171">❌ Error: ${error.message}</td></tr>`;
+        `<tr><td colspan="7" style="color:var(--danger);text-align:center">❌ Error de conexión: ${error.message}</td></tr>`;
     });
 
-    // Filtros
-    document.getElementById('filterDevice').addEventListener('change', filterVisits);
+    document.getElementById('filterOS').addEventListener('change', filterVisits);
     document.getElementById('filterBrowser').addEventListener('change', filterVisits);
+    document.getElementById('filterBrand').addEventListener('change', filterVisits);
     document.getElementById('searchInput').addEventListener('input', filterVisits);
+    
+    // Indicador de conexión
+    window.addEventListener('online', () => document.getElementById('liveIndicator').innerHTML = '🟢 En vivo');
+    window.addEventListener('offline', () => document.getElementById('liveIndicator').innerHTML = '🔴 Sin conexión');
   </script>
 </body>
 </html>
